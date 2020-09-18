@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SecondViewController: UIViewController {
+class SecondViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     
     @IBOutlet weak var imageView: UIImageView!
@@ -24,11 +24,33 @@ class SecondViewController: UIViewController {
 
         let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(hideKey))
         view.addGestureRecognizer(gestureRecognizer)
+        
+        imageView.isUserInteractionEnabled = true
+        
+        let imageTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(selectImage))
+        imageView.addGestureRecognizer(imageTapRecognizer)
+        
+        
     }
 
     @objc func hideKey() {
         
         view.endEditing(true)
+    }
+    
+    @objc func selectImage() {
+        
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        picker.sourceType = .photoLibrary
+        picker.allowsEditing = true
+        present(picker, animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        imageView.image = info[.editedImage] as? UIImage
+        self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func saveClicked(_ sender: Any) {
