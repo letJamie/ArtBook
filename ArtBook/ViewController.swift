@@ -12,12 +12,15 @@ import CoreData
 class ViewController: UIViewController,UITableViewDelegate, UITableViewDataSource {
     
     
-
+    
     @IBOutlet weak var tableView: UITableView!
     
     var nameArray = [String]()
     var idArray = [UUID]()
-   
+    
+    var selectedPainting = ""
+    var selectedPaintingId : UUID?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -30,7 +33,17 @@ class ViewController: UIViewController,UITableViewDelegate, UITableViewDataSourc
         // Do any additional setup after loading the view.
     }
     
-    func getData() {
+    override func viewWillAppear(_ animated: Bool) {
+        
+//        NotificationCenter.default.addObserver(self, selector: #selector(getData), name: NSNotification.Name(rawValue: "newData"), object: nil)
+        
+        getData()
+    }
+
+    @objc func getData() {
+        
+        nameArray.removeAll(keepingCapacity: false)
+        idArray.removeAll(keepingCapacity: false)
         
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = appDelegate.persistentContainer.viewContext
@@ -42,30 +55,35 @@ class ViewController: UIViewController,UITableViewDelegate, UITableViewDataSourc
             
             let results = try context.fetch(fetchRequest)
             
-            for result in results as! [NSManagedObject] {
+            if results.count > 0 {
                 
-                if let name = result.value(forKey: "name") as?  String {
+                
+                for result in results as! [NSManagedObject] {
                     
-                    self.nameArray.append(name)
+                    if let name = result.value(forKey: "name") as?  String {
+                        
+                        self.nameArray.append(name)
+                    }
+                    
+                    if let id = result.value(forKey: "id") as? UUID {
+                        
+                        self.idArray.append(id)
+                    }
+                    
+                    self.tableView.reloadData()
                 }
                 
-                if let id = result.value(forKey: "id") as? UUID {
-                    
-                    self.idArray.append(id)
-                }
-                
-                self.tableView.reloadData()
             }
-
             
         } catch {
-            
+            print("error")
         }
         
     }
     
     @objc func barButtonClicked() {
      
+        selectedPainting = ""
         performSegue(withIdentifier: "toSecondVC", sender: nil)
         
     }
@@ -87,7 +105,23 @@ class ViewController: UIViewController,UITableViewDelegate, UITableViewDataSourc
     }
     
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        selectedPainting = nameArray[indexPath.row]
+        selectedPaintingId = idArray[indexPath.row ]
+        performSegue(withIdentifier: "toSecondVC", sender: nil)
+    }
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if segue.identifier == "toSecondVC" {
+            
+            let secondVC = segue.destination as! SecondViewController
+            
+            secondVC.chosenPainting = selectedPainting
+            secondVC.ChosendPaintingId = selectedPaintingId
+        }
+    }
 
 
 }

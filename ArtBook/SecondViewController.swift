@@ -13,12 +13,13 @@ class SecondViewController: UIViewController, UIImagePickerControllerDelegate, U
 
     
     @IBOutlet weak var imageView: UIImageView!
-    
     @IBOutlet weak var nameText: UITextField!
-    
     @IBOutlet weak var artistText: UITextField!
-    
     @IBOutlet weak var yearText: UITextField!
+
+    var chosenPainting = ""
+    var ChosendPaintingId : UUID?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +32,58 @@ class SecondViewController: UIViewController, UIImagePickerControllerDelegate, U
         let imageTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(selectImage))
         imageView.addGestureRecognizer(imageTapRecognizer)
         
+        
+        if chosenPainting != "" {
+            
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let context = appDelegate.persistentContainer.viewContext
+            
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Paintings")
+            let idString = ChosendPaintingId!.uuidString
+            
+            fetchRequest.predicate = NSPredicate(format: "id = %@", idString)
+            fetchRequest.returnsObjectsAsFaults = false
+            
+            do {
+                
+                let results = try context.fetch(fetchRequest)
+                
+                if results.count > 0 {
+                    
+                    for result in results as! [NSManagedObject] {
+                        
+                        if let name = result.value(forKey: "name") as? String {
+                            
+                            nameText.text = name
+                        }
+                        
+                        if let artist = result.value(forKey: "artist") as? String {
+                            
+                            artistText.text = artist
+                        }
+                        
+                        if let year = result.value(forKey: "year") as? Int {
+                            
+                            yearText.text = String(year)
+                        }
+                        
+                        if let imageData = result.value(forKey: "image") as? Data {
+                            
+                            let image = UIImage(data: imageData)
+                            imageView.image = image
+                        }
+                    }
+                    
+                }
+                
+            } catch {
+                
+            }
+            
+            
+        } else {
+            
+        }
         
     }
 
@@ -86,6 +139,8 @@ class SecondViewController: UIViewController, UIImagePickerControllerDelegate, U
             print("error")
             
         }
+        
+        self.navigationController?.popViewController(animated: true)
     }
     
     
