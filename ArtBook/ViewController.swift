@@ -123,6 +123,46 @@ class ViewController: UIViewController,UITableViewDelegate, UITableViewDataSourc
         }
     }
 
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        
+        if editingStyle == .delete {
+            
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let context = appDelegate.persistentContainer.viewContext
+            
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Paintings")
+            
+            let idString = idArray[indexPath.row].uuidString
+            
+            fetchRequest.predicate = NSPredicate(format: "id = %@", idString)
+            
+            do {
+                
+                let results = try context.fetch(fetchRequest)
+                
+                for result in results as! [NSManagedObject] {
+                    
+                    context.delete(result)
+                    nameArray.remove(at: indexPath.row)
+                    idArray.remove(at: indexPath.row)
+                    self.tableView.reloadData()
+                    
+                    do {
+                        try context.save()
+                        
+                    } catch {
+                        print("error")
+                    }
+                }
+                
+            } catch {
+                
+                print("error")
+            }
+    
+            fetchRequest.returnsObjectsAsFaults = false
+        }
+    }
 
 }
 
